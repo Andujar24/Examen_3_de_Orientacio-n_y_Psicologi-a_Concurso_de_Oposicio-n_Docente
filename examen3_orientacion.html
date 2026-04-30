@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examen 3 de Orientación y Psicología — Concurso de Oposición Docente</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ec; --surface: #ffffff; --surface2: #f0ece3;
+    --accent: #1a6b4a; --accent2: #d4a843;
+    --text: #1c1c1a; --text2: #5a5a54; --text3: #8a8a82;
+    --border: rgba(0,0,0,0.1);
+    --correct: #e8f5e0; --correct-border: #5a9e30; --correct-text: #2d5c12;
+    --wrong: #fde8e8; --wrong-border: #d44; --wrong-text: #922;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .page-header { background: var(--accent); color: white; padding: 2rem 1.5rem 1.5rem; text-align: center; }
+  .page-header h1 { font-family: 'DM Serif Display', serif; font-size: clamp(18px, 4vw, 28px); margin-bottom: 4px; font-weight: 400; }
+  .page-header p { font-size: 13px; opacity: 0.8; }
+  .container { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  .progress-wrap { background: rgba(0,0,0,0.1); border-radius: 99px; height: 6px; margin: 1.5rem 0 1rem; }
+  .progress-fill { background: var(--accent2); height: 6px; border-radius: 99px; transition: width 0.4s; }
+  .stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+  .stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: 5px 14px; font-size: 13px; color: var(--text2); }
+  .stat-pill b { color: var(--accent); }
+  .timer-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: 5px 14px; font-size: 13px; color: var(--text2); font-weight: 500; display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .timer-pill.warning { background: #fff8e1; border-color: #d4a843; color: #8a6200; }
+  .timer-pill.danger { background: var(--wrong); border-color: var(--wrong-border); color: var(--wrong-text); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  .timer-dot { width: 8px; height: 8px; border-radius: 50%; background: #1a6b4a; flex-shrink: 0; }
+  .timer-pill.warning .timer-dot { background: #d4a843; }
+  .timer-pill.danger .timer-dot { background: var(--wrong-border); }
+  .question-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .q-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; }
+  .q-text { font-size: 15px; line-height: 1.65; color: var(--text); margin-bottom: 1.25rem; font-weight: 500; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .opt-btn { display: flex; align-items: flex-start; gap: 10px; background: var(--surface2); border: 1.5px solid transparent; border-radius: 8px; padding: 11px 14px; font-size: 14px; color: var(--text); cursor: pointer; text-align: left; transition: background 0.15s, border-color 0.15s; font-family: 'DM Sans', sans-serif; line-height: 1.5; }
+  .opt-btn:hover:not(:disabled) { background: #e8e4da; border-color: var(--accent); }
+  .opt-btn .lbl { background: white; border: 1px solid var(--border); border-radius: 5px; min-width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; margin-top: 1px; }
+  .opt-btn.correct { background: var(--correct); border-color: var(--correct-border); color: var(--correct-text); }
+  .opt-btn.correct .lbl { background: var(--correct); border-color: var(--correct-border); color: var(--correct-text); }
+  .opt-btn.wrong { background: var(--wrong); border-color: var(--wrong-border); color: var(--wrong-text); }
+  .opt-btn.wrong .lbl { background: var(--wrong); border-color: var(--wrong-border); color: var(--wrong-text); }
+  .opt-btn:disabled { cursor: default; }
+  .feedback { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; line-height: 1.5; }
+  .feedback.ok { background: var(--correct); color: var(--correct-text); border-left: 3px solid var(--correct-border); }
+  .feedback.err { background: var(--wrong); color: var(--wrong-text); border-left: 3px solid var(--wrong-border); }
+  .nav-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 1rem; }
+  .btn { font-family: 'DM Sans', sans-serif; background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 18px; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--text); transition: background 0.15s; }
+  .btn:hover { background: var(--surface2); }
+  .btn:disabled { opacity: 0.35; cursor: default; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+  .btn.primary:hover { background: #145a3c; }
+  .btn.gold { background: var(--accent2); border-color: var(--accent2); color: white; }
+  .btn.gold:hover { background: #b8922e; }
+  .jump-row { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+  .jump-row label { font-size: 13px; color: var(--text3); }
+  .jump-row input { width: 58px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; }
+  .results-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 2.5rem 2rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .results-card h2 { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; margin-bottom: 6px; }
+  .score-circle { width: 120px; height: 120px; border-radius: 50%; background: var(--accent); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 1.5rem auto; }
+  .score-num { font-size: 32px; font-weight: 600; line-height: 1; }
+  .score-denom { font-size: 13px; opacity: 0.8; }
+  .pct-text { font-size: 22px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+  .msg { font-size: 15px; color: var(--text2); margin-bottom: 1.5rem; }
+  .results-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+  .wrong-section { text-align: left; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+  .wrong-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
+  .wrong-item { padding: 12px 14px; border-radius: 8px; background: var(--surface2); margin-bottom: 8px; font-size: 13px; line-height: 1.6; }
+  .wrong-item .wq { font-weight: 500; margin-bottom: 4px; }
+  .wrong-item .wa { color: var(--wrong-text); }
+  .wrong-item .wc { color: var(--correct-text); }
+  .start-screen { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 2.5rem 2rem; text-align: center; margin-top: 2rem; }
+  .start-screen h2 { font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; margin-bottom: 8px; }
+  .start-screen p { color: var(--text2); font-size: 15px; margin-bottom: 1.5rem; line-height: 1.6; }
+  .duration-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .dur-btn { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; color: var(--text); transition: all 0.15s; }
+  .dur-btn:hover, .dur-btn.selected { background: var(--accent); border-color: var(--accent); color: white; }
+  @media (max-width: 480px) { .page-header { padding: 1.5rem 1rem 1rem; } .question-card { padding: 1.25rem; } .jump-row { margin-left: 0; } }
+</style>
+</head>
+<body>
+<div class="page-header">
+  <h1>Examen 3 de Orientación y Psicología</h1>
+  <p>Concurso de Oposición Docente · Lic. Alexis Junior Torres Alejo</p>
+</div>
+<div class="container"><div id="app"></div></div>
+<script>
+const questions = [
+  {q:"¿Cuál de las siguientes características NO es parte de un egresado del sistema educativo pre-universitario en la República Dominicana?",opts:["Conocer y cuidar responsablemente su cuerpo","Pensar de forma lógica, analítica y reflexiva","Actuar sin autonomía ni asertividad","Comunicar sus ideas y sentimientos de manera eficaz"],ans:2},
+  {q:"¿Qué habilidad debe evidenciar un egresado en la construcción de argumentos válidos?",opts:["Uso de métodos y técnicas de indagación científica","Desarrollo de la creatividad personal","Asumir posturas coherentes y pertinentes","Práctica de adecuados hábitos de vida"],ans:2},
+  {q:"¿Cuál es una de las responsabilidades de un egresado del sistema educativo pre-universitario en la República Dominicana?",opts:["Contribuir al logro de metas comunes para fomentar la convivencia democrática","Limitar su participación a contextos familiares y personales","Ignorar la diversidad de los seres vivos en el planeta","Asumir un compromiso ciudadano sin sentido de justicia ni solidaridad"],ans:0},
+  {q:"¿Qué actitud debe asumir un egresado frente a las herencias culturales?",opts:["Una actitud crítica y reflexiva","Una actitud de aceptación y conformidad","Una actitud de indiferencia y desinterés","Una actitud de rigidez y conservadurismo"],ans:0},
+  {q:"¿Cuál afirmación es correcta sobre la comunicación de un egresado?",opts:["Debe comunicar sus ideas solo en su lengua materna","Debe comunicar sus ideas solo en escenarios académicos","Debe comunicar sus ideas solo con herramientas tradicionales","Debe comunicar sus ideas de manera eficaz en su lengua materna y otros idiomas"],ans:3},
+  {q:"En el centro educativo hay conflictos de agresividad verbal entre profesores. ¿Cuál acción escogería como orientador?",opts:["Generar espacio de reflexión y discusión sobre los docentes","Iniciar la semana de ambientación con actividades de adaptación","Realizar actividades que fomenten las buenas prácticas de relaciones interpersonales","Informar a los organismos competentes los casos de estudiantes infractores"],ans:2},
+  {q:"Los resultados de evaluación han bajado con un alto porcentaje de estudiantes reprobados. ¿Cuál acción recomendaría a la dirección?",opts:["Una acción que no le recomendaría a la dirección realizar","Al orientador en la conversación Carmen se manifiesta confundida","Identificar conjuntamente con los docentes las causas y diseñar un plan de acción","Hacer una reunión con los padres para que ayuden con las tareas"],ans:2},
+  {q:"¿Cuál de las siguientes NO corresponde con el propósito fundamental de la orientación en el contexto educativo?",opts:["Iniciar la semana de ambientación con actividades de adaptación","Generar espacios de reflexión y discusión entre los docentes","Informar a los organismos competentes los casos de estudiantes infractores de la ley"],ans:0},
+  {q:"En una escuela se presentan diferentes tipos de problemas. Los referidos al aprendizaje se conocen como:",opts:["Dificultades escolares","Retrasos escolares","Desviaciones escolares"],ans:0},
+  {q:"¿Qué haría usted como orientador de manera particular por lo que establece la norma de convivencia?",opts:["Elaboraría un plan para determinar la causa del problema y posibles soluciones","Recomiendo la sanción de tres días para el niño","Aislar el niño para tratarlo de manera personalizada"],ans:0},
+  {q:"El orientador identificó estudiantes provenientes de familias disfuncionales. ¿Cuál actividad toma en cuenta para elaborar un plan de acción?",opts:["Evaluaciones periódicas a los estudiantes","Charlas educativas para las familias con temas puntuales","Visitas de observación en el aula y orientaciones a los maestros"],ans:1},
+  {q:"¿Cuál de estas acciones NO está dentro de la efectividad del orientador?",opts:["Facilitar","Aconsejar","Acompañar","A y C es correcta"],ans:1},
+  {q:"¿Cuál práctica debe tener un 60% del tiempo total anual invertido para la actualización del orientador (DPC)?",opts:["Asistencia certificada a un congreso profesional o científico","Trabajo editorial en revista y libros de psicología","Asistencia certificada y participación en cursos acreditados y/o talleres dirigidos"],ans:2},
+  {q:"¿Cuál situación del entorno escolar debe ser tomado en cuenta en la planificación?",opts:["Los estudiantes llegan tarde a la escuela sin dar las explicaciones de lugar","Los padres de los estudiantes no responden al llamado de atención por el comportamiento","Los estudiantes no realizan las tareas en el tiempo establecido"],ans:0},
+  {q:"Elizabeth estructuró una entrevista para conocer las necesidades vocacionales de sus estudiantes. ¿Cuál acción le permite desempeñar mejor su rol?",opts:["Sugerirle seguir la carrera de sus padres","Un acercamiento entre orientadora y estudiantes","Programa de entrevistas estructuradas"],ans:2},
+  {q:"El director recomienda al orientador tomar un taller de actualización de las TICS. ¿Cuál es la respuesta correcta?",opts:["Me parece una oportunidad muy enriquecedora para mi práctica profesional","Agradezco la oportunidad, pero es mejor que lo aprovechen los docentes","Como orientador no me corresponde asistir a este tipo de temática","A y B son correcta"],ans:0},
+  {q:"¿Cuál afirmación es correcta sobre la comunicación de un egresado? (segunda versión)",opts:["Debe comunicar sus ideas solo en su lengua materna","Debe comunicar sus ideas solo en escenarios de intervención académica","Debe comunicar sus ideas solo utilizando herramientas y recursos tradicionales","Debe comunicar sus ideas de manera eficaz en su lengua materna y otros idiomas"],ans:3},
+  {q:"¿Cuál es una de las habilidades que debe valorar y utilizar eficazmente un egresado?",opts:["La capacidad para actuar proactivamente en situaciones imprevistas","La capacidad para preservar y cuidar el medio ambiente","La capacidad para planificar su proyecto de vida sin relación con sus intereses y sueños","La capacidad para asumir posturas incoherentes y relevantes"],ans:0},
+  {q:"La planificación constituye una actividad imprescindible para el trabajo cotidiano de las unidades de orientación y psicología. ¿Cuál fase se menciona?",opts:["Diagnóstica","Monitoreo y evaluación","Planificación"],ans:2},
+  {q:"Implica la realización de una radiografía del centro al inicio del año escolar y una línea base con los indicadores estadísticos de calidad educativa:",opts:["Planificación","Fase diagnóstica","Fase de ejecución"],ans:1},
+  {q:"¿Cuáles informaciones se recogen en el marco contextual de la planificación?",opts:["Descripción del contexto social, contexto escolar y necesidades identificadas","Estrategia de monitoreo y evaluación","Datos estadísticos de la línea base","A y C son correcta"],ans:0},
+  {q:"Acceso a servicios básicos, tipos de familia, actividades económicas, indicadores socio-culturales, instituciones comunitarias... corresponde a:",opts:["Descripción del contexto social, familiar y comunitario","Contexto escolar","Fase diagnóstica"],ans:0},
+  {q:"Indicadores de eficiencia interna (promoción, repitencia, abandono y sobreedad), relaciones y estilos de convivencia, oportunidades de participación... corresponde a:",opts:["Necesidades identificadas","Contexto social","Contexto escolar"],ans:2},
+  {q:"¿Qué debe valorar y confiar un estudiante en sí mismo?",opts:["Las fortalezas y debilidades propias","Las fortalezas y debilidades de los demás","Las fortalezas y debilidades globales","Las fortalezas y debilidades de la comunidad nacional"],ans:0},
+  {q:"¿Cuál opción describe una responsabilidad del egresado con respecto a la preservación del medio ambiente?",opts:["Ignorar los conceptos de reciclar, reusar y reducir","Contribuir a la contaminación del medio ambiente","Promover prácticas sostenibles de cuidado ambiental","Desperdiciar recursos naturales sin consideración"],ans:2},
+  {q:"Desarrollo evolutivo y aprendizajes, necesidades formativas de docentes, necesidades organizativas del centro, barreras de inclusión... corresponde a:",opts:["Necesidades específicas","Necesidades identificadas","Ejecución"],ans:1},
+  {q:"¿Qué debe hacer un estudiante con respecto a la planificación de su proyecto de vida?",opts:["Relacionarlo solo con sus intereses personales","Ignorar por completo sus posibilidades y sueños","No tomar decisiones significativas ante los desafíos","Planificarlo en relación con sus intereses, posibilidades y sueños"],ans:3},
+  {q:"¿Cuál de los siguientes valores NO debe promover un egresado en una ciudadanía?",opts:["Ética","Moral","Individualismo extremo","Solidaridad"],ans:2},
+  {q:"Número de casos de adolescentes embarazadas, niños con necesidades específicas de apoyo educativo, estudiantes que reciben apoyo de centros de recursos... corresponde a:",opts:["Datos estadísticos de la base","Datos de evaluación","Diseño de planificación"],ans:0},
+  {q:"Todos los profesionales de orientación y psicología deben conocer las líneas de intervención. Es responsabilidad ser conscientes de su rol. Esto se refiere a:",opts:["La naturaleza de los servicios propios del área y las líneas de intervención en el sistema educativo","Marco conceptual","Planificación de orientación y psicología"],ans:0},
+  {q:"Las planificaciones diseñadas deben partir de las fortalezas y necesidades del centro educativo para dar respuesta oportuna. Esto se refiere a:",opts:["Contexto social y familiar","Valoración de los indicadores de eficiencia del centro educativo","El marco contextual del centro educativo"],ans:2},
+  {q:"Constituyen una medida de la calidad del centro, sus desafíos y oportunidades:",opts:["Característica del desarrollo de la población estudiantil","La valoración de los indicadores de eficiencia interna del centro educativo","Marco contextual escolar"],ans:1},
+  {q:"Los servicios y acciones han de estar en plena correspondencia con las características propias de la población estudiantil. Esto se refiere a:",opts:["Las características del desarrollo de la población estudiantil","Las características del desarrollo del contexto escolar","Las características del desarrollo de la población docente"],ans:0},
+  {q:"La estructura del ministerio de educación responde a distintos niveles de organización según la naturaleza del proceso educativo. Esto se refiere a:",opts:["Autoridades educativas","Distrito educativo","Las demandas del nivel educativo, modalidad o subsistemas en el cual trabajamos"],ans:2},
+  {q:"La orientación educativa se ha concebido en articulación plena a los procesos de desarrollo curricular para conseguir una educación de calidad. Esto se refiere a:",opts:["Desarrollo del personal docente","Las implementaciones del desarrollo curricular","Implementaciones de las competencias del estudiante"],ans:1},
+  {q:"Los psicólogos y orientadores deben proponer procesos innovadores y prácticas transformadoras. Esto corresponde a:",opts:["Los cambios que se demandan para el logro de los objetivos de la educación","Implicaciones del desarrollo curricular","Diseño de planificación"],ans:0},
+  {q:"¿Cuáles son los componentes de la nueva estructura del diseño curricular?",opts:["Competencias, contenidos, estrategias de enseñanza y aprendizaje, actividades, medios y recursos para el aprendizaje y orientaciones para la evaluación","Competencias, conceptos, procedimientos, actitudes y valores","Ejes transversales, competencias fundamentales y competencias específicas"],ans:0},
+  {q:"¿Qué objetivo tiene la incorporación del enfoque de competencia en el currículo dominicano?",opts:["Destacar la importancia de la comunicación intercultural","Enfatizar la movilización del conocimiento y promover el aprendizaje significativo","Desarrollar capacidades vinculadas al mundo del trabajo","Mejorar la calidad de vida de las personas con necesidades especiales"],ans:1},
+  {q:"¿Cuáles son las competencias fundamentales del currículo dominicano?",opts:["Competencias Ética y Ciudadana, Comunicativas y de Pensamiento Lógico, Crítico y Creativo","Competencias de Resolución de Problemas, Científica y Tecnológica y Ambiental y de Salud","Competencias de Desarrollo Personal y Espiritual","Todas las anteriores"],ans:3},
+  {q:"¿Cómo se clasifican los saberes o contenidos en el diseño curricular?",opts:["Informaciones sobre hechos, conceptos, procedimientos, valores y actitudes","Competencias fundamentales, específicas y laborales-profesionales","Ejes transversales, competencias fundamentales y competencias específicas"],ans:0},
+  {q:"¿Cuál es el objetivo principal del diseño curricular en la República Dominicana?",opts:["Mejorar la calidad de la educación","Promover la igualdad de género en el currículo","Incrementar el uso de tecnología en las aulas","Fomentar la participación de los padres en la educación"],ans:0},
+  {q:"¿Qué implica el enfoque de competencias en la práctica educativa?",opts:["Desarrollar habilidades específicas para cada área de conocimiento","Promover la memorización de datos y hechos relevantes","Fomentar la aplicación práctica de los conocimientos adquiridos","Enfatizar la enseñanza basada en la repetición de información"],ans:2},
+  {q:"¿Cuál es el papel de los docentes en la implementación del currículo por competencias?",opts:["Transmitir conocimientos de manera tradicional","Facilitar el aprendizaje y guiar a los estudiantes en el desarrollo de competencias","Evaluar únicamente los resultados finales de los estudiantes","Limitar su función a la enseñanza de contenidos teóricos"],ans:1},
+  {q:"¿Cuál es la relación entre los ejes transversales y las competencias en el currículo dominicano?",opts:["Los ejes transversales son las competencias específicas","Los ejes transversales proporcionan un marco conceptual para las competencias","Las competencias están vinculadas a las actividades extracurriculares","Los ejes transversales son parte de los contenidos específicos de cada área"],ans:1},
+  {q:"¿Qué se busca promover a través de la competencia de Pensamiento Lógico, Creativo y Crítico?",opts:["El desarrollo de habilidades comunicativas","La capacidad de resolver problemas de manera efectiva","El fomento de valores y actitudes positivas","La comprensión de conceptos científicos y tecnológicos"],ans:1},
+  {q:"¿Cuál es el propósito de la competencia Ética y Ciudadana en el currículo?",opts:["Desarrollar habilidades matemáticas en los estudiantes","Fomentar la conciencia social y la participación ciudadana","Promover el conocimiento de diferentes culturas y tradiciones","Mejorar el rendimiento académico de los estudiantes"],ans:1},
+  {q:"¿Qué tipo de saberes o contenidos se clasifican como 'valores' en el diseño curricular?",opts:["Informaciones sobre hechos y conceptos","Habilidades y destrezas específicas","Actitudes y principios éticos","Estrategias de enseñanza y evaluación"],ans:2},
+  {q:"¿Cuál es la relación entre las competencias fundamentales y las competencias específicas?",opts:["Las competencias fundamentales son un nivel superior de las competencias específicas","Las competencias específicas se desarrollan a partir de las competencias fundamentales","Las competencias fundamentales y las específicas son términos intercambiables","Las competencias específicas son más importantes que las competencias fundamentales"],ans:1},
+  {q:"Planificación anual en la unidad de orientación y psicología. ¿Cuál afirmación es correcta?",opts:["Debe planificarse al momento del año escolar destinados a la evaluación de la planificación","A partir del marco contextual de la planificación y el desarrollo progresivo de las acciones","Este diseño favorece la mirada global de las acciones que se realizarán durante el año escolar","Se favorece una mirada procesual que permite decisiones en torno a las acciones planificadas"],ans:2},
+  {q:"¿Qué implica la planificación anual?",opts:["Implica el planteamiento de las diferentes competencias fundamentales","Implica monitorear y dar seguimiento a los procesos para identificar fortalezas y debilidades","Implica emprender las acciones de mejora que se deben contemplar","Implica favorecer una mirada procesual que permita la toma de decisiones"],ans:3},
+  {q:"¿Cuál de los siguientes NO corresponde al diseño de la planificación anual?",opts:["Señala por cada línea de acción las actividades a realizar con sus finalidades","Establecer las líneas de actuación de los servicios de orientación y psicología","Realizar análisis diagnóstico del centro educativo","Extraer las actividades a realizar cada mes según lo diseñado en la planificación anual"],ans:2},
+  {q:"Planificación mensual en la unidad de orientación y psicología. ¿Cuál afirmación es correcta?",opts:["La planificación de la unidad y la organización a desarrollo","Permite que los orientadores y psicólogos puedan organizar sus servicios cada mes","La planificación mensual implica el planteamiento de las diferentes competencias fundamentales","Línea de intervención de la planificación de orientación y psicología en el contexto dominicano"],ans:1},
+  {q:"¿Cuál de las siguientes pertenece al diseño de la planificación anual?",opts:["Se identificarán las actividades regulares: seguimientos a casos","Diálogo con docentes, reuniones del equipo de orientación y psicología, etc","Señalar las competencias fundamentales con componentes, rasgos e indicadores","Se extraerán las actividades contempladas en la planificación mensual"],ans:2},
+  {q:"¿Cuál de las siguientes acciones NO pertenece al diseño de planificación mensual?",opts:["Extraer las actividades a realizar cada mes según lo diseñado en la planificación anual","Realizar análisis diagnóstico del centro educativo","Realizar una matriz con el detalle de cada actividad","Línea de intervención de los servicios de orientación y psicología a la que pertenece"],ans:1},
+  {q:"La planificación mensual se debe planificar al menos:",opts:["Quince días antes","Una semana antes","Un mes antes","A y C son correcta"],ans:0},
+  {q:"Para realizar una matriz con detalle de cada actividad, ¿cuáles informaciones se toman en cuenta?",opts:["Participante, recursos o medios requeridos, fecha de realización, evidencias","Actividad que se realizará, metodología (estrategias y técnicas)","Línea de intervención de los servicios de orientación y psicología a la que pertenece","Todas son correctas"],ans:3},
+  {q:"El cronograma semanal en la unidad de orientación y psicología se refiere a:",opts:["Señala cada línea de acción y actividades semanales","Establecer las líneas de actuación de los servicios de orientación y psicología","Constituye un instrumento de organización de las actividades que se desarrollan cada semana","Realizar análisis diagnósticos del centro educativo"],ans:2},
+  {q:"Para la construcción del cronograma semanal, ¿cuál acción NO pertenece?",opts:["Se identificarán las actividades regulares: seguimientos a casos","Establece las líneas de actuación de los servicios de orientación y psicología","Se organizará colocando cada día de la semana las actividades y horarios de ejecución","Se extraerán las actividades contempladas en la planificación mensual"],ans:1},
+  {q:"Plan diario en la unidad de orientación y psicología. ¿Cuál afirmación es correcta?",opts:["Se identificarán las actividades diarias de seguimiento","Se organizan una matriz colocando cada día de la semana","Se extraerán las actividades contempladas en la planificación diaria","Constituye la descripción día a día de las acciones a desarrollar por psicólogos/as"],ans:3},
+  {q:"Fase de diseño de la planificación. ¿Cuál afirmación es correcta?",opts:["Fase de planificación análisis de los indicadores de eficiencia interna del centro educativo","Fase de diseño de grupos focales con estudiantes, docentes y actores de la comunidad educativa","Favorece la organización y diseño de la planificación de los servicios de orientación y psicología","Diseño de análisis del contexto recogido en el proyecto educativo del centro"],ans:2},
+  {q:"¿Cómo se debe hacer la fase de diseño de la planificación?",opts:["Se debe tomar en cuenta los principales indicadores que dan cuenta de la calidad educativa","Este proceso se debe hacer de manera coordinada con un enfoque colaborativo","Se debe hacer al inicio del año escolar a partir de una evaluación diagnóstica","Se debe hacer teniendo en cuenta el centro educativo y los indicadores de eficiencia interna"],ans:1},
+  {q:"¿Cuál de estas NO pertenece a las acciones de la fase de diseño de la planificación?",opts:["Organización de la planificación anual según líneas de intervención de la orientación","Coordinación con los diferentes actores de la comunidad educativa de las estrategias y prevención","Resultados de la evaluación diagnóstica realizadas por los docentes al inicio del año escolar","Establecimiento de las necesidades y prioridades que se trabajan a partir de los resultados"],ans:2},
+  {q:"Fase de ejecución. ¿Cuál afirmación es correcta?",opts:["Se van seleccionando las acciones a desarrollar conforme a lo consignado","Esta fase debe diseñarse al menos una semana antes de que inicie el mes","Esta fase parte de la mirada evaluativa de las necesidades actuales del centro educativo","En esta se organizan y desarrollan las acciones definidas en la planificación anual"],ans:3},
+  {q:"A partir de la articulación con los diferentes actores de la comunicación educativa se favorece la organización y diseño de la planificación. Este proceso se debe hacer de manera coordinada con un enfoque colaborativo. Corresponde a:",opts:["Fase de diseño de la planificación","Fase de ejecución","Fase de monitoreo y evaluación"],ans:0},
+  {q:"Se recoge la mirada diagnóstica del centro educativo y su comunidad local a fin de valorar todas las acciones requeridas durante el año escolar desde la unidad de orientación y psicología. Corresponde a:",opts:["Planificación mensual","Planificación anual","Cronograma semanal"],ans:1},
+  {q:"Se van seleccionando las acciones a desarrollar conforme a lo consignado en la planificación anual, debe diseñarse al menos una semana antes de que inicie el mes. Corresponde a:",opts:["Planificación diaria","Planificación semanal","Planificación mensual"],ans:2},
+  {q:"Se organizan las acciones enumerando las actividades por día y colocando las horas de su realización. Corresponde a:",opts:["Plan diario","Planificación semanal","Planificación mensual","Diario reflexivo"],ans:0},
+  {q:"¿Qué debería hacer con sus estudiantes para que aprovechen los recursos de internet de manera responsable?",opts:["Utilizar fuentes tecnológicas que prevean datos confiables, actuales y pertinentes","Investigar en sitios web que abarcan un amplio campo de información de libre acceso","Desarrollar actividades lúdicas recreativas recomendadas para personas adultas"],ans:0},
+  {q:"Al momento de iniciar un tema para que los estudiantes logren aprendizaje significativo usted debe verificar:",opts:["La adecuación de las actividades a implementar","La importancia que tiene el contenido del tema","Los saberes previos para conectarlos con los nuevos"],ans:2},
+  {q:"Para fortalecer la imaginación y creatividad se asignó la tarea de investigar cómo piensan los jóvenes acerca de cómo se relacionan. El recurso adecuado es:",opts:["Presentar imágenes de diferentes interacciones","Tomar fotografía y presentarla al grupo","Grabación de entrevista y edición de video"],ans:2},
+  {q:"¿Cuál es la manera más eficiente para desarrollar un clima de valoración entre los estudiantes mediante destrezas de comunicación lingüística?",opts:["Muestra comprensión de las lecturas en los temas que desarrollan","Transmitir mensajes claros a sus compañeros a través del lenguaje oral","Uso de vocabulario apropiado y la escucha respetuosa de sus interlocutores"],ans:2},
+  {q:"Aprender cooperativamente es el tipo de estrategia más eficaz para que los estudiantes del nivel secundario desarrollen:",opts:["Sus propias competencias y las de sus compañeros","Sus aprendizajes con los métodos tradicionales","Sus capacidades competitivas","Sus habilidades en forma independiente"],ans:0},
+  {q:"Para probar la interpretación de ideas y conceptos científicos en el nivel primario, el tipo de pregunta debe:",opts:["Enseñar a preguntar y satisfacer su curiosidad","Estimular el pensamiento inquisitivo hacia la búsqueda de diversas respuestas","Buscar respuestas predeterminadas y exactas","Orientar la acción del pensamiento a proveer información"],ans:1},
+  {q:"Un estudiante contesta erróneamente una pregunta que usted hace a todo el grupo. Lo correcto es que usted:",opts:["Dé ejemplos y le haga otras preguntas que lo guíen a la respuesta correcta","Llame su atención para que esté más atento al desarrollo de la clase","Le proporcione la respuesta correcta y continúe con la siguiente pregunta","No le conteste y le haga la pregunta a otro estudiante"],ans:0},
+  {q:"¿Qué impacto genera el monitoreo del proceso educativo en la gestión pedagógica del docente?",opts:["Estudiantes logran la autonomía y control sobre el desarrollo de sus competencias","Toma de decisiones oportunas para ajustar el proceso de enseñanza a las necesidades","Se obtiene la información necesaria para el seguimiento al desarrollo educativo","Aumento de las expectativas de logros de los estudiantes"],ans:1},
+  {q:"La forma más apropiada de emplear la tecnología en la evaluación de estudiantes del nivel secundario debe ser:",opts:["Proyectar videos adecuados a las competencias e interrogar sobre sus contenidos","Combinar los medios físicos y recursos tecnológicos a partir de las necesidades de cada uno","Enviar un examen por internet para que lo resuelvan en sus casas","Diseñar actividades en una aplicación o plataforma virtual accesible al centro"],ans:1},
+  {q:"¿Qué se fundamenta para la fase de monitoreo y seguimiento?",opts:["El profesional de orientación o psicología escolar debe tener un perfil profesional específico","Como profesional que ofrece un servicio debe mostrar claro su desarrollo profesional y personal","Definir muy claro el proceso metodológico que va a apoyar cada objetivo","Las acciones de mejora identificando los posibles apoyos y definiendo responsabilidades"],ans:3},
+  {q:"¿Qué describe la fase de desarrollo de acciones de mejora?",opts:["El monitoreo ayudará a que podamos identificar logros y dificultades y las acciones de mejora","El monitoreo y seguimiento ayudará a identificar logros y dificultades y las acciones de mejora","El apoyo psicológico ofrece a los docentes en ayudarles a conocer y mejorar la autoestima"],ans:1},
+  {q:"¿Cómo debe ser el perfil del profesional de la orientación y la psicología?",opts:["Como profesional especializado debe tener claro su papel y disposición para el cambio","Abierto y receptivo al cambio, se adecúe a las exigencias y demandas establecidas en el currículo","Demuestra habilidades para su autorregulación y control emocional"],ans:0},
+  {q:"La labor orientadora de los docentes para atender la diversidad de necesidades específicas de los estudiantes (no solo de aprendizaje) debe ser de la naturaleza:",opts:["Psicosocial o vinculadas a su desarrollo","Psiquiátricas o vinculadas a su desarrollo","Cultural o vinculadas a su desarrollo"],ans:0},
+  {q:"¿Cuáles aspectos son fundamentales para la planificación del aprendizaje significativo de los estudiantes?",opts:["Talento, inteligencia, competencias individuales","Habilidades, interacción social y el lenguaje","Valores familiares y comunitarios y el grupo social","Experiencia previa, contexto social y práctica cultural"],ans:3},
+  {q:"La estimulación del propio desarrollo integral y la determinación sobre su aprendizaje a lo largo del proceso educativo son dos características de un aprendizaje:",opts:["Mediado","Autogestionado","Compartido"],ans:1},
+  {q:"Estrategias de educación de la conducta del niño, niña o adolescente, para que interiorice patrones autónomos de comportamiento y asuma reflexivamente las consecuencias de incumplir los principios. Se denomina:",opts:["Reglamento o manual de convivencia del centro educativo","Convivencia escolar","Disciplina positiva"],ans:2},
+  {q:"De la dirección general de orientación y psicología, ¿cuál NO está dentro de las normas de convivencia?",opts:["Actuará como asesor de los órganos de mediación y aplicación de medidas","Intervendrá en los casos de expulsión o acoso de estudiantes","Siempre estará presente en los casos de intervención aunque no se lo soliciten"],ans:2},
+  {q:"El personal técnico del área de orientación y psicología del distrito educativo está obligado a:",opts:["Recibir toda denuncia que se le permita acerca de posibles manejos inadecuados","Resolver cualquier tipo de conflicto","Trabajar los casos cualquier día y en cualquier horario"],ans:0},
+  {q:"Tiempo fuera dentro del centro, retención de objetos distracciones, comunicados a la familia, amonestaciones verbales son medidas disciplinarias educativas:",opts:["Formativa","Consecuencias","Restaurativas"],ans:0},
+  {q:"Se refiere a todas las actitudes agresivas intencionadas y repetidas adoptadas por uno o más estudiantes contra otro:",opts:["Acoso escolar","Violencia escolar","Discriminación"],ans:0},
+  {q:"Son asignaciones asociadas a lo cognitivo cuyo objetivo es propiciar la reflexión y generar conocimientos que aporten positivamente a los hechos que provocaron las faltas:",opts:["Medidas formativas","Medidas restaurativas","Medidas de consecuencias"],ans:1},
+  {q:"Son acciones voluntarias que influyen negativamente en el desempeño del estudiante, tales como molestar, uso de lenguaje inapropiado, tirar basura, salir sin permiso:",opts:["Falta leves","Falta grave","Falta muy grave"],ans:0},
+  {q:"Son acciones voluntarias o coaccionadas que obstruyen el proceso pedagógico pero no producen daño físico. Por ejemplo plagiar trabajo, dañar mobiliario, irrespeto a símbolos patrios:",opts:["Falta graves","Falta leves","Falta muy graves"],ans:0},
+  {q:"Son acciones voluntarias o coaccionadas que construyen peligro o daño físico o moral, como el acoso escolar, violencia, objetos de peligro, desafío o agresión a miembros del centro:",opts:["Falta grave","Falta leve","Falta muy grave"],ans:2},
+  {q:"Todo comportamiento que pretende generar en otra persona un obrar activo y/o pasivo por miedo a una represalia:",opts:["Maltrato","Intimidación","Discriminación","Todas las anteriores"],ans:1},
+  {q:"Son acciones destinadas a responsabilizar a cada estudiante de las consecuencias de sus actos, combinando reflexión aleccionadora con servicio reparador a la comunidad educativa:",opts:["Las normas de convivencias","Falta grave","Mediación","Medidas educativas y disciplinares"],ans:3},
+  {q:"Es un procedimiento en el que una persona ajena al conflicto ayuda a los involucrados a llegar a un acuerdo sin establecer sanciones ni culpables:",opts:["Personal docente","Comunidad educativa","Mediación","Todas las anteriores"],ans:2},
+  {q:"Persona o personas responsables de la administración, funcionamiento y organización del centro educativo:",opts:["Autoridad educativa","Comunidad educativa","Personal docente","Personal administrativo"],ans:0},
+  {q:"Es cualquier forma de maltrato psicológico, físico o verbal entre estudiantes, de manera reiterada, con el objetivo de someterlo, opacarlo, asustarlo y amenazarlo:",opts:["Acoso entre pares (Bullying)","Discriminación","Maltrato"],ans:0},
+  {q:"Es un procedimiento donde una persona ajena al conflicto ayuda a los involucrados a llegar a un acuerdo sin establecer sanciones ni culpables (segunda instancia):",opts:["Personal docente","Comunidad educativa","Mediación"],ans:2},
+  {q:"Son acciones destinadas a responsabilizar a cada estudiante de las consecuencias de sus actos, combinando la reflexión aleccionadora con servicio reparador (segunda instancia):",opts:["Las normas de convivencias","Falta graves","Medidas educativas y disciplinares"],ans:2},
+  {q:"De los siguientes, ¿cuál NO pertenece a los derechos de los y las estudiantes?",opts:["Ser apoyados desde el seno familiar y desde el aula a través del comité de cursos de padres","Participar en la construcción de una comunidad educativa respetuosa y tolerante","Asistir con el uniforme establecido en los centros educativos públicos y privados","Recibir una educación de calidad que promueva que todos aprendan"],ans:2},
+  {q:"La familia y la comunidad son aliadas naturales y estratégicas de los esfuerzos de cada centro educativo, tienen el deber de apoyar las disposiciones que regulan la convivencia escolar. Esto corresponde a:",opts:["Escuela de madres, padres y tutores","Reglamento de convivencia del centro","Derechos y deberes de padres, madres, tutores y encargados/as","Deberes del personal docente"],ans:2},
+  {q:"¿Cuál es la relación entre los ejes transversales y las competencias en el currículo dominicano? (segunda instancia)",opts:["Los ejes transversales son parte de los contenidos específicos de cada área","Las competencias están vinculadas a las actividades extracurriculares","Los ejes transversales proporcionan un marco conceptual para las competencias","Los ejes transversales son las competencias específicas"],ans:2},
+  {q:"¿Qué implica el enfoque de competencias en la práctica educativa? (segunda instancia)",opts:["Fomentar la aplicación práctica de los conocimientos adquiridos","Desarrollar habilidades específicas para cada área de conocimiento","Promover la memorización de datos y hechos relevantes"],ans:0},
+  {q:"¿Cuál es la relación entre las competencias fundamentales y las competencias específicas? (segunda instancia)",opts:["Evaluar únicamente los resultados finales de los estudiantes","Las competencias fundamentales son nivel superior de las competencias específicas","Facilitar el aprendizaje y guiar a los estudiantes en el desarrollo de competencias"],ans:1},
+  {q:"¿Cuáles datos se recolectan para el análisis del contexto en la planificación de orientación y psicología?",opts:["Cronograma de actividades","Plan para el nuevo año escolar","Fortalezas, necesidades, competencias fundamentales","A y D son correctas"],ans:2},
+  {q:"¿Cuáles actores del plantel escolar son entrevistados para hacer el análisis del contexto?",opts:["Docentes, estudiantes del consejo estudiantil, padres y madres de la escuela de padres activos","Directores, autoridades educativas","Distrito y técnico distrital","B y C son correcta"],ans:0},
+  {q:"En la unidad de orientación y psicología se plantean trabajar diferentes competencias fundamentales. ¿Cuáles corresponden?",opts:["Competencia de seguimiento","Competencia de necesidades específicas","Competencia de situación de vulnerabilidad","Competencia Ética y Ciudadana, Competencia de desarrollo personal y espiritual"],ans:3},
+  {q:"¿Qué describe la competencia Ética y Ciudadana?",opts:["Actúa con autonomía, responsabilidad y asertividad en referencia a sus deberes y derechos","Evalúa las prácticas sociales e institucionales","Contribuye a la creación de relaciones justas y democráticas para la convivencia","A y C son correcta"],ans:3},
+  {q:"¿Cuáles son los rasgos o indicadores de la competencia Ética y Ciudadana?",opts:["Reconoce prácticas de exclusión y discriminación social","Sueña con un futuro mejor para sí mismo y su familia","Asume sus derechos y deberes con responsabilidad","Sensibiliza, rechaza situaciones de injusticia. Trabaja cooperativamente a favor de la inclusión","D, A y C son correctas"],ans:4},
+  {q:"¿Qué describe la competencia comunicativa?",opts:["Utiliza diversos códigos de comunicación, autorregula su proceso de comunicación","Escucha a sus pares y figuras de autoridad. Se sensibiliza y rechaza situaciones de injusticia","Asume derechos y deberes con responsabilidad. Trabaja cooperativamente a favor de la inclusión","Actúa con autonomía, responsabilidad y asertividad en referencia a sus deberes y derechos"],ans:0},
+  {q:"¿Cuál de las siguientes NO pertenece a la competencia de desarrollo personal y espiritual?",opts:["Proyecta su futuro y misión en la vida con autonomía, realismo y optimismo","Establece relaciones constructivas y colaborativas","Contribuye a la creación de relaciones justas y democráticas para la convivencia","Desarrolla una autoimagen equilibrada y una sana autoestima"],ans:2},
+  {q:"Rasgos o indicadores de la Competencia de Desarrollo Personal y Espiritual. ¿Cuál NO pertenece?",opts:["Conoce, cuida su cuerpo, reconoce su cambio y su identidad personal psicosexual y de género","Valora el respeto y la responsabilidad en sus relaciones con otros y otras","Manifiesta sensibilidad ante las necesidades de las demás personas","Identifica y expresa sus emociones y sentimientos. Maneja los conflictos en forma pacífica"],ans:0},
+  {q:"Rasgos o indicadores de Competencia Comunicativa. ¿Cuál es correcta?",opts:["Reconoce y aplica las normas que rigen el funcionamiento del sistema de la lengua de señas","Explora sus posibilidades y talentos participando en actividades diversas","Se comunica de forma asertiva, respetando y apreciando la opinión de las demás personas","A y C son correctas"],ans:3},
+  {q:"Identificación de las Líneas de Intervención de los Servicios de Orientación y Psicología. ¿Cuál es correcta?",opts:["Apoyo a temas transversales del currículo, apoyo a la formación y orientación de las familias","Apoyo psicopedagógico y psicoafectivo a la población estudiantil en situación de vulnerabilidad","Establece relaciones constructivas y colaborativas","A y B son correcta"],ans:3},
+  {q:"El centro educativo ha estado experimentando una disminución en el rendimiento académico. ¿Qué acción podría tomar el equipo de gestión?",opts:["Aumentar las partidas presupuestarias para adquirir nuevos materiales educativos","Implementar procesos participativos y democráticos para involucrar a la comunidad educativa","Contratar más personal de apoyo para brindar apoyo adicional a los estudiantes con dificultades","Excluir temporalmente a los estudiantes con bajo rendimiento para mejorar el ambiente de aprendizaje"],ans:1},
+  {q:"Se ha decidido introducir una asignatura enfocada en habilidades socioemocionales. ¿Qué garantizaría una implementación efectiva?",opts:["Designar a un solo docente para impartirla en todos los ciclos educativos","Consultar únicamente el equipo directivo en la definición de los contenidos","Involucrar a estudiantes, docentes y padres en la definición de los contenidos y objetivos","Ignorar las opiniones de los estudiantes ya que pueden no tener suficiente conocimiento"],ans:2},
+  {q:"La comunidad educativa ha notado problemas de convivencia entre algunos estudiantes. ¿Qué medida podría tomar el equipo de gestión?",opts:["Contratar más personal de seguridad para vigilar el comportamiento de los estudiantes","Implementar un enfoque autoritario para mantener el orden y disciplina","Realizar talleres y actividades que promuevan la resolución pacífica de conflictos","Castigar a los estudiantes involucrados sin darles oportunidad de expresar sus puntos de vista"],ans:2},
+  {q:"El centro planea una jornada de puertas abiertas para mostrar el trabajo del año. ¿Qué beneficio podría tener?",opts:["Permite a los padres interactuar con los estudiantes sin la supervisión de los docentes","Ayuda a los padres a comprender mejor el enfoque pedagógico y los logros de sus hijos","Sirve como oportunidad para que los padres se quejen de la gestión educativa","Fomenta la competencia entre los estudiantes para destacar durante el evento"],ans:1},
+  {q:"¿Cuál es uno de los principales enfoques de una dirección eficiente en un centro?",opts:["Propiciar un ambiente de competencia entre el personal docente para mejorar la calidad","Impulsar el desarrollo de capacidades profesionales y liderazgos auténticos en cada aula","Establecer un enfoque autoritario para mantener la disciplina y el orden","Priorizar el aumento del presupuesto para adquirir materiales educativos de alta calidad"],ans:1},
+  {q:"¿Cuál es el propósito principal del aula en los centros educativos?",opts:["Crear un ambiente de confrontación donde los estudiantes defiendan sus opiniones","Fomentar el diálogo abierto y respetuoso, el debate plural y la toma de decisiones colectivas","Mantener un ambiente de silencio y disciplina donde solo el docente tiene el control","Excluir la participación de los estudiantes en la gestión del aula y en la toma de decisiones"],ans:1},
+  {q:"¿Qué busca promover la participación de los estudiantes en los consejos de curso y el consejo estudiantil?",opts:["Una mayor segregación entre los estudiantes según su rendimiento académico","Un espacio donde los estudiantes puedan quejarse y criticar la gestión escolar sin consecuencias","La elaboración de reglas y normas para mejorar la convivencia escolar y buscar soluciones","Una oportunidad para que los estudiantes eviten responsabilidades y decisiones colectivas"],ans:2},
+  {q:"¿Por qué es importante fomentar la participación en la gestión del aula desde los primeros grados?",opts:["Para generar un ambiente competitivo entre los estudiantes y mejorar su rendimiento","Para que los estudiantes se enfoquen únicamente en sus tareas académicas sin distracciones","Para iniciar a los estudiantes en la vida comunitaria y desarrollar habilidades de toma de decisiones","Para reducir el tiempo en la clase y aumentar el tiempo de descanso"],ans:2},
+  {q:"¿Qué se busca lograr mediante las reuniones periódicas de programación, evaluación y reflexión entre docentes?",opts:["Fomentar la competencia entre los docentes para destacar individualmente en sus aulas","Compartir oportunidades de crecimiento profesional y apoyarse mutuamente en la búsqueda de soluciones","Eliminar cualquier discrepancia entre los docentes para mantener la uniformidad en la enseñanza","Reducir el tiempo de trabajo de los docentes para dedicarse a otras actividades"],ans:1},
+  {q:"¿Por qué es importante que la dirección realice un análisis crítico de las fortalezas y debilidades de la institución?",opts:["Para demostrar a los estudiantes que el centro educativo es perfecto y no necesita cambios","Para enfocarse únicamente en el desarrollo de las fortalezas sin abordar las debilidades","Para proponer soluciones y mejoras que fortalezcan y mejoren el proyecto educativo del aula","Para ocultar las debilidades y amenazas del centro y evitar conflictos con la comunidad educativa"],ans:2},
+  {q:"El propósito principal del programa de orientación es:",opts:["Ofrecer talleres de técnicas y hábitos de estudios, y orientación vocacional","Estimular el desarrollo del alumno en las diferentes dimensiones de su vida","Apoyar el proceso de enseñanza-aprendizaje asesorando los estudiantes de bajo rendimiento"],ans:1},
+  {q:"La orientación vocacional está dirigida:",opts:["A los estudiantes de diferentes grados, pues se relaciona con el proyecto de vida","A los estudiantes de todos los niveles educativos, pues tiene relación con los contenidos","Especialmente a los estudiantes del nivel medio porque están cerca de la selección de carrera"],ans:2}
+];
+
+const labels = ['A','B','C','D','E'];
+let current = 0;
+let answers = new Array(questions.length).fill(null);
+let submitted = new Array(questions.length).fill(false);
+let score = 0;
+let finished = false;
+let timerInterval = null;
+let timeLeft = 0;
+let selectedDuration = 90;
+let examStarted = false;
+
+function formatTime(s) {
+  const m = Math.floor(s/60), sec = s%60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function startTimer() {
+  timeLeft = selectedDuration * 60;
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) { clearInterval(timerInterval); finished = true; render(); }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('timer-display');
+  if (!el) return;
+  const pill = document.getElementById('timer-pill');
+  el.textContent = formatTime(timeLeft);
+  if (timeLeft <= 60) pill.className = 'timer-pill danger';
+  else if (timeLeft <= 300) pill.className = 'timer-pill warning';
+}
+
+function showStartScreen() {
+  document.getElementById('app').innerHTML = `
+    <div class="start-screen">
+      <h2>Examen 3 de Orientación y Psicología</h2>
+      <p>125 preguntas de opción múltiple<br>Selecciona el tiempo límite para tu examen.</p>
+      <div class="duration-btns">
+        <button class="dur-btn ${selectedDuration===30?'selected':''}" onclick="setDur(30)">30 min</button>
+        <button class="dur-btn ${selectedDuration===60?'selected':''}" onclick="setDur(60)">60 min</button>
+        <button class="dur-btn ${selectedDuration===90?'selected':''}" onclick="setDur(90)">90 min</button>
+        <button class="dur-btn ${selectedDuration===120?'selected':''}" onclick="setDur(120)">120 min</button>
+        <button class="dur-btn ${selectedDuration===0?'selected':''}" onclick="setDur(0)">Sin límite</button>
+      </div>
+      <button class="btn primary" style="font-size:16px;padding:12px 32px;" onclick="startExam()">Comenzar examen →</button>
+    </div>`;
+}
+
+function setDur(d) { selectedDuration = d; showStartScreen(); }
+
+function startExam() {
+  examStarted = true;
+  if (selectedDuration > 0) startTimer();
+  render();
+}
+
+function render() {
+  const app = document.getElementById('app');
+  if (!examStarted) { showStartScreen(); return; }
+  if (finished) { renderResults(); return; }
+  const q = questions[current];
+  const pct = Math.round(((current+1)/questions.length)*100);
+  const done = submitted.filter(Boolean).length;
+  const timerHTML = selectedDuration > 0 ? `<div class="timer-pill" id="timer-pill"><div class="timer-dot"></div><span id="timer-display">${formatTime(timeLeft)}</span></div>` : '';
+
+  app.innerHTML = `
+    <div class="progress-wrap"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="stats-row">
+      <div class="stat-pill">Pregunta <b>${current+1} / ${questions.length}</b></div>
+      <div class="stat-pill">Correctas <b>${score}</b></div>
+      <div class="stat-pill">Respondidas <b>${done}</b></div>
+      ${timerHTML}
+    </div>
+    <div class="question-card">
+      <div class="q-label">Pregunta ${current+1}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((opt,i) => {
+          let cls = 'opt-btn';
+          if (submitted[current]) {
+            if (i === q.ans) cls += ' correct';
+            else if (answers[current] === i) cls += ' wrong';
+          }
+          return `<button class="${cls}" onclick="pick(${i})" ${submitted[current]?'disabled':''}><span class="lbl">${labels[i]}</span>${opt}</button>`;
+        }).join('')}
+      </div>
+      ${submitted[current] ? `<div class="feedback ${answers[current]===q.ans?'ok':'err'}">
+        ${answers[current]===q.ans ? '✓ ¡Correcto!' : `✗ Incorrecto. La respuesta correcta es: <b>${labels[q.ans]}) ${q.opts[q.ans]}</b>`}
+      </div>` : ''}
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="go(-1)" ${current===0?'disabled':''}>← Anterior</button>
+      <button class="btn" onclick="go(1)" ${current===questions.length-1?'disabled':''}>Siguiente →</button>
+      ${done===questions.length ? `<button class="btn gold" onclick="finish()">Ver resultados →</button>` : ''}
+      <div class="jump-row">
+        <label>Ir a:</label>
+        <input type="number" id="ji" min="1" max="${questions.length}" placeholder="N°" />
+        <button class="btn" onclick="jump()">Ir</button>
+      </div>
+    </div>`;
+}
+
+function pick(i) {
+  if (submitted[current]) return;
+  answers[current] = i; submitted[current] = true;
+  if (i === questions[current].ans) score++;
+  render();
+}
+
+function go(d) { current = Math.max(0, Math.min(questions.length-1, current+d)); render(); }
+function jump() { const v = parseInt(document.getElementById('ji').value); if (v>=1&&v<=questions.length){current=v-1;render();} }
+function finish() { finished = true; render(); }
+
+function renderResults() {
+  const pct = Math.round(score/questions.length*100);
+  const msg = pct>=90?'¡Excelente preparación para el concurso!':pct>=70?'¡Buen resultado, sigue repasando!':pct>=50?'Hay áreas importantes por reforzar.':'Se recomienda repasar todo el material.';
+  const wrong = questions.map((q,i)=>({q,i,ua:answers[i]})).filter(x=>x.ua!==x.q.ans);
+  document.getElementById('app').innerHTML = `
+    <div class="results-card">
+      <h2>Resultado Final</h2>
+      <div class="score-circle"><div class="score-num">${score}</div><div class="score-denom">de ${questions.length}</div></div>
+      <div class="pct-text">${pct}%</div>
+      <div class="msg">${msg}</div>
+      <div class="results-actions"><button class="btn primary" onclick="restart()">Reiniciar examen</button></div>
+      ${wrong.length>0?`<div class="wrong-section"><h3>Preguntas incorrectas (${wrong.length})</h3>
+        ${wrong.map(x=>`<div class="wrong-item">
+          <div class="wq">P${x.i+1}: ${x.q.q}</div>
+          <div class="wa">Tu respuesta: ${x.ua!==null?labels[x.ua]+') '+x.q.opts[x.ua]:'Sin responder'}</div>
+          <div class="wc">✓ Correcta: ${labels[x.q.ans]}) ${x.q.opts[x.q.ans]}</div>
+        </div>`).join('')}</div>`:'<p style="color:#2d5c12;font-weight:500;margin-top:1rem">🎉 ¡Respondiste todo correctamente!</p>'}
+    </div>`;
+}
+
+function restart() {
+  clearInterval(timerInterval);
+  current=0; answers=new Array(questions.length).fill(null);
+  submitted=new Array(questions.length).fill(false);
+  score=0; finished=false; examStarted=false; timeLeft=0;
+  showStartScreen();
+}
+
+showStartScreen();
+</script>
+</body>
+</html>
